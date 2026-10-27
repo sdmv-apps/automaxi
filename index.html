@@ -1,0 +1,279 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>AutoMaxi</title>
+<meta name="description" content="AutoMaxi mirrors Android Auto onto your Yamaha XMAX / NMAX instrument cluster. Free, ad-free, donation-supported.">
+<link rel="icon" href="logo.png">
+<meta property="og:title" content="AutoMaxi">
+<meta property="og:description" content="Navigation on your XMAX / NMAX cluster. Free, ad-free.">
+<meta property="og:image" content="logo.png">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Chivo:wght@700;800;900&family=IBM+Plex+Mono:wght@500;600&family=IBM+Plex+Sans:wght@400;500;600&display=swap">
+<style>
+  /* Layout: a single centered column on near-black navy; one cyan accent, liquid-glass cards, a soft
+     accent glow behind the hero. Committed dark look to match the app. */
+  :root {
+    --bg: #05080D;
+    --bg-2: #080d15;
+    --fg: #F2F6FA;
+    --fg-2: #9AA8B6;
+    --fg-3: #66778A;
+    --accent: #46D9E6;
+    --accent-press: #2FB5C1;
+    --on-accent: #00262B;
+    --saweria: #F5A524;
+    --kofi: #29ABE0;
+    --glass: rgba(255,255,255,0.045);
+    --glass-stroke: rgba(255,255,255,0.09);
+    --glass-sheen: rgba(255,255,255,0.14);
+    --hairline: rgba(255,255,255,0.08);
+    --display: "Chivo", "Arial Black", sans-serif;
+    --body: "IBM Plex Sans", system-ui, -apple-system, Segoe UI, Roboto, sans-serif;
+    --mono: "IBM Plex Mono", ui-monospace, SFMono-Regular, Menlo, monospace;
+    color-scheme: dark;
+  }
+  * { box-sizing: border-box; }
+  html { -webkit-text-size-adjust: 100%; }
+  body {
+    margin: 0;
+    background: var(--bg);
+    color: var(--fg);
+    font-family: var(--body);
+    line-height: 1.6;
+    font-size: 16px;
+    overflow-x: hidden;
+  }
+  img { max-width: 100%; display: block; }
+  a { color: var(--accent); text-decoration: none; }
+  .wrap {
+    width: 100%;
+    max-width: 960px;
+    margin: 0 auto;
+    padding-left: max(20px, env(safe-area-inset-left, 0px));
+    padding-right: max(20px, env(safe-area-inset-right, 0px));
+  }
+
+  /* ---- Hero ---- */
+  .hero { position: relative; text-align: center; padding-block: 72px 48px; }
+  .hero::before {
+    content: "";
+    position: absolute; left: 50%; top: -80px; transform: translateX(-50%);
+    width: 680px; max-width: 120%; height: 480px;
+    background: radial-gradient(ellipse at center, rgba(70,217,230,0.18), rgba(70,217,230,0.05) 42%, transparent 68%);
+    filter: blur(12px); z-index: 0; pointer-events: none;
+  }
+  .hero > * { position: relative; z-index: 1; }
+  .logo { width: 108px; height: auto; margin: 0 auto 22px; filter: drop-shadow(0 8px 28px rgba(70,217,230,0.28)); }
+  h1 {
+    font-family: var(--display); font-weight: 900;
+    font-size: clamp(2.8rem, 10vw, 4.6rem); line-height: 0.98;
+    letter-spacing: -0.02em; margin: 0; text-wrap: balance;
+  }
+  .tagline { color: var(--fg); font-size: clamp(1.05rem, 3.5vw, 1.4rem); font-weight: 500; margin: 16px auto 0; max-width: 30ch; text-wrap: balance; }
+  .sub { color: var(--fg-2); margin: 14px auto 0; max-width: 54ch; }
+
+  /* ---- Download ---- */
+  .dl { margin-top: 34px; display: flex; flex-direction: column; align-items: center; gap: 14px; }
+  .btn {
+    display: inline-flex; align-items: center; gap: 10px;
+    background: var(--accent); color: var(--on-accent);
+    font-family: var(--body); font-weight: 600; font-size: 1.08rem;
+    padding: 15px 30px; border-radius: 14px; border: 0;
+    box-shadow: 0 10px 30px rgba(70,217,230,0.28); cursor: pointer;
+    transition: transform .12s ease, background .12s ease, box-shadow .12s ease;
+  }
+  .btn:hover { background: var(--accent-press); transform: translateY(-1px); }
+  .btn:active { transform: translateY(0); }
+  .btn svg { width: 20px; height: 20px; }
+  .dl-meta { color: var(--fg-3); font-size: 0.9rem; }
+  .counter { display: inline-flex; align-items: baseline; gap: 7px; color: var(--fg-2); font-size: 0.95rem; }
+  .counter b { font-family: var(--mono); font-weight: 600; color: var(--fg); font-size: 1.05rem; font-variant-numeric: tabular-nums; }
+  .counter.pending b { color: var(--fg-3); }
+
+  /* ---- Sections ---- */
+  section { padding-block: 40px; }
+  .eyebrow { font-family: var(--mono); text-transform: uppercase; letter-spacing: 0.18em; font-size: 0.72rem; color: var(--accent); margin: 0 0 10px; }
+  h2 { font-family: var(--display); font-weight: 800; font-size: clamp(1.6rem, 5vw, 2.2rem); letter-spacing: -0.01em; margin: 0 0 8px; text-wrap: balance; }
+  .lead { color: var(--fg-2); max-width: 60ch; margin: 0 0 26px; }
+
+  .grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 16px; }
+  @media (max-width: 560px) { .grid { grid-template-columns: 1fr; } }
+  .card {
+    background: var(--glass); border: 1px solid var(--glass-stroke); border-radius: 16px;
+    padding: 22px; position: relative; overflow: hidden; min-width: 0;
+  }
+  .card::before { content: ""; position: absolute; inset: 0 0 auto; height: 1px; background: linear-gradient(90deg, transparent, var(--glass-sheen), transparent); }
+  .card .ic { width: 38px; height: 38px; color: var(--accent); margin-bottom: 14px; }
+  .card h3 { font-family: var(--body); font-weight: 600; font-size: 1.1rem; margin: 0 0 6px; }
+  .card p { color: var(--fg-2); margin: 0; font-size: 0.95rem; }
+
+  /* ---- Steps ---- */
+  .steps { display: grid; gap: 14px; counter-reset: step; }
+  .step { display: grid; grid-template-columns: auto 1fr; gap: 16px; align-items: start; background: var(--glass); border: 1px solid var(--glass-stroke); border-radius: 14px; padding: 18px 20px; }
+  .step .n { counter-increment: step; font-family: var(--mono); font-weight: 600; color: var(--accent); font-size: 1.05rem; }
+  .step .n::before { content: counter(step, decimal-leading-zero); }
+  .step h3 { font-family: var(--body); font-weight: 600; font-size: 1.02rem; margin: 0 0 3px; }
+  .step p { color: var(--fg-2); margin: 0; font-size: 0.93rem; }
+
+  /* ---- Support ---- */
+  .support { background: var(--glass); border: 1px solid var(--glass-stroke); border-radius: 18px; padding: 28px; }
+  .support .rows { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; margin-top: 20px; }
+  @media (max-width: 560px) { .support .rows { grid-template-columns: 1fr; } }
+  .srow { display: flex; align-items: center; gap: 14px; padding: 16px 18px; border-radius: 13px; border: 1px solid var(--glass-stroke); background: rgba(255,255,255,0.02); transition: border-color .12s ease, transform .12s ease; }
+  .srow:hover { transform: translateY(-1px); }
+  .srow .tile { width: 42px; height: 42px; border-radius: 11px; display: grid; place-items: center; flex: 0 0 auto; }
+  .srow .tile svg { width: 22px; height: 22px; }
+  .srow .t { font-weight: 600; color: var(--fg); }
+  .srow .h { color: var(--fg-3); font-size: 0.85rem; }
+  .srow.saweria { --c: var(--saweria); } .srow.saweria .tile { background: rgba(245,165,36,0.14); color: var(--saweria); } .srow.saweria:hover { border-color: rgba(245,165,36,0.5); }
+  .srow.kofi { --c: var(--kofi); } .srow.kofi .tile { background: rgba(41,171,224,0.14); color: var(--kofi); } .srow.kofi:hover { border-color: rgba(41,171,224,0.5); }
+
+  /* ---- Footer ---- */
+  footer { border-top: 1px solid var(--hairline); margin-top: 24px; padding-block: 34px 48px; }
+  .sdmv { display: flex; align-items: center; gap: 12px; color: var(--fg-3); font-size: 0.9rem; margin-bottom: 18px; }
+  .sdmv img { height: 22px; width: auto; opacity: 0.85; }
+  .disclaimer { color: var(--fg-3); font-size: 0.82rem; max-width: 70ch; }
+  .disclaimer p { margin: 0 0 8px; }
+
+  @media (prefers-reduced-motion: reduce) { * { transition: none !important; } }
+</style>
+</head>
+<body>
+  <main class="wrap">
+
+    <header class="hero">
+      <img class="logo" src="logo.png" alt="AutoMaxi logo">
+      <h1>AutoMaxi</h1>
+      <p class="tagline">Navigation on your XMAX&nbsp;/&nbsp;NMAX cluster</p>
+      <p class="sub">AutoMaxi mirrors Android Auto onto your Yamaha instrument cluster — maps on the dash, controlled from your phone. Independent, free, and ad-free.</p>
+
+      <div class="dl">
+        <a class="btn" id="download" href="#" rel="noopener">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 3v12m0 0l-4-4m4 4l4-4"/><path d="M4 17v2a2 2 0 002 2h12a2 2 0 002-2v-2"/></svg>
+          Download for Android
+        </a>
+        <div class="dl-meta">
+          <span class="counter pending" id="counter"><b id="count">—</b> downloads</span>
+          <span aria-hidden="true"> · </span>
+          <span id="ver">APK · Android 8+</span>
+        </div>
+      </div>
+    </header>
+
+    <section id="features">
+      <p class="eyebrow">What it does</p>
+      <h2>Your dash, with Android Auto on it</h2>
+      <p class="lead">AutoMaxi streams the Android Auto map to the XMAX / NMAX cluster and keeps it running while you ride. One connection, then hands-off.</p>
+      <div class="grid">
+        <div class="card">
+          <svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></svg>
+          <h3>One-button connect</h3>
+          <p>Tap Connect once. AutoMaxi finds your cluster, pairs, and streams until you stop it.</p>
+        </div>
+        <div class="card">
+          <svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="12" rx="2"/><path d="M8 20h8M12 16v4"/></svg>
+          <h3>Runs in the background</h3>
+          <p>Keeps streaming with the phone screen off, so your map stays live for the whole ride.</p>
+        </div>
+        <div class="card">
+          <svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3C7 3 3 6.5 3 11c0 2.2 1 4 2.8 5.3L5 21l4.2-2.1c.9.2 1.8.3 2.8.3 5 0 9-3.5 9-8s-4-8-9-8z"/></svg>
+          <h3>Built for riders</h3>
+          <p>Designed for the XMAX / NMAX dash: the map fits the cluster, not a phone screen crammed onto it.</p>
+        </div>
+        <div class="card">
+          <svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3l7 3v5c0 4.4-3 7.8-7 9-4-1.2-7-4.6-7-9V6l7-3z"/><path d="M9.5 12l1.8 1.8L15 10"/></svg>
+          <h3>Free &amp; private</h3>
+          <p>No ads. No personal data. Free forever — supported entirely by optional donations.</p>
+        </div>
+      </div>
+    </section>
+
+    <section id="setup">
+      <p class="eyebrow">Getting started</p>
+      <h2>Three steps to the dash</h2>
+      <p class="lead">A short one-time setup — the app walks you through it and checks each step before you ride.</p>
+      <div class="steps">
+        <div class="step"><span class="n"></span><div><h3>Install AutoMaxi</h3><p>Download the APK and allow the install from your browser or files app.</p></div></div>
+        <div class="step"><span class="n"></span><div><h3>Import the keys &amp; enable Android Auto dev mode</h3><p>AutoMaxi links you to the free public Open Headunit keys and shows you how to switch on Android Auto's developer head-unit server.</p></div></div>
+        <div class="step"><span class="n"></span><div><h3>Pair your cluster, then Connect</h3><p>Pair the XMAX / NMAX in Bluetooth settings, open AutoMaxi, and tap Connect. That's it.</p></div></div>
+      </div>
+    </section>
+
+    <section id="support">
+      <div class="support">
+        <p class="eyebrow">Keep it free</p>
+        <h2>Enjoying AutoMaxi?</h2>
+        <p class="lead" style="margin-bottom:0">It's free, ad-free, and built by one rider in his spare time. If it earned a place on your dash, a small tip keeps the fixes and new features coming — and keeps AutoMaxi free for everyone.</p>
+        <div class="rows">
+          <a class="srow saweria" href="https://saweria.co/sdmv" target="_blank" rel="noopener">
+            <span class="tile"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 21s-7.5-4.6-10-9.3C.6 8.6 2 5.5 5 5.1c2-.3 3.5.8 4.3 2.1.3.5.6 1 .7 1.3.1-.3.4-.8.7-1.3C11.5 5.9 13 4.8 15 5.1c3 .4 4.4 3.5 3 6.6C19.5 16.4 12 21 12 21z"/></svg></span>
+            <span><span class="t">Saweria</span><br><span class="h">For riders in Indonesia</span></span>
+          </a>
+          <a class="srow kofi" href="https://ko-fi.com/sdmvdash" target="_blank" rel="noopener">
+            <span class="tile"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 8h13v5a4 4 0 01-4 4H8a4 4 0 01-4-4V8z"/><path d="M17 9h2.5a2.5 2.5 0 010 5H17"/><path d="M8 3v2M12 3v2"/></svg></span>
+            <span><span class="t">Ko-fi</span><br><span class="h">For riders worldwide</span></span>
+          </a>
+        </div>
+      </div>
+    </section>
+
+    <footer>
+      <div class="sdmv">
+        <img src="sdmv.png" alt="SDMV" onerror="this.style.display='none'">
+        <span>An SDMV project</span>
+      </div>
+      <div class="disclaimer">
+        <p>Not affiliated with, endorsed by, or supported by Yamaha or Google. XMAX, NMAX, Android Auto and related names are trademarks of their respective owners.</p>
+        <p>AutoMaxi is experimental software, provided as-is with no warranty. Never interact with your phone or cluster while riding — set up everything before you set off, and use it lawfully.</p>
+      </div>
+    </footer>
+
+  </main>
+
+<script>
+  // ---- GitHub Releases config: set OWNER (and REPO if you rename it) ----
+  var OWNER = "sdmv-apps";    // GitHub account
+  var REPO  = "automaxi";      // public distribution repo (website + APK releases)
+  // ----------------------------------------------------------------------
+  var RELEASES_PAGE = "https://github.com/" + OWNER + "/" + REPO + "/releases/latest";
+
+  (function () {
+    var btn = document.getElementById("download");
+    var countEl = document.getElementById("count");
+    var counterEl = document.getElementById("counter");
+    var verEl = document.getElementById("ver");
+    // Fallback that always works even if the API call fails or JS is slow.
+    btn.href = RELEASES_PAGE;
+
+    function fmt(n) { return n.toLocaleString("en-US"); }
+
+    fetch("https://api.github.com/repos/" + OWNER + "/" + REPO + "/releases")
+      .then(function (r) { if (!r.ok) throw new Error("http " + r.status); return r.json(); })
+      .then(function (releases) {
+        if (!Array.isArray(releases) || !releases.length) throw new Error("no releases");
+        // Total downloads = every APK asset across every published release.
+        var total = 0, latestApk = null, latestTag = null;
+        releases.forEach(function (rel) {
+          (rel.assets || []).forEach(function (a) {
+            if (/\.apk$/i.test(a.name)) {
+              total += a.download_count || 0;
+              if (!latestApk && !rel.prerelease && !rel.draft) { latestApk = a.browser_download_url; latestTag = rel.tag_name; }
+            }
+          });
+        });
+        if (latestApk) btn.href = latestApk;
+        if (latestTag) verEl.textContent = latestTag + " · Android 8+";
+        countEl.textContent = fmt(total);
+        counterEl.classList.remove("pending");
+      })
+      .catch(function () {
+        // Leave the fallback link; show a neutral counter rather than a broken one.
+        countEl.textContent = "—";
+      });
+  })();
+</script>
+</body>
+</html>
