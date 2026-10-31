@@ -1,17 +1,28 @@
 <!doctype html>
-<html lang="en">
+<html lang="en" data-lang="en">
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <title>AutoMaxi</title>
-<meta name="description" content="AutoMaxi mirrors Android Auto onto your Yamaha XMAX / NMAX instrument cluster. Free, ad-free, donation-supported.">
+<meta name="description" content="AutoMaxi shows Android Auto on your Yamaha XMAX / NMAX instrument cluster. Free, ad-free, donation-supported.">
 <link rel="icon" href="logo.png">
 <meta property="og:title" content="AutoMaxi">
-<meta property="og:description" content="Navigation on your XMAX / NMAX cluster. Free, ad-free.">
+<meta property="og:description" content="Android Auto on your XMAX / NMAX cluster. Free, ad-free.">
 <meta property="og:image" content="logo.png">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Chivo:wght@700;800;900&family=IBM+Plex+Mono:wght@500;600&family=IBM+Plex+Sans:wght@400;500;600&display=swap">
+<script>
+  // Language before first paint: ?lang=id|en (shareable), else the rider's last choice, else the browser's language.
+  (function () {
+    var l = null;
+    try { var q = new URLSearchParams(location.search).get("lang"); if (q === "id" || q === "en") { l = q; localStorage.setItem("lang", q); } } catch (e) {}
+    if (!l) try { l = localStorage.getItem("lang"); } catch (e) {}
+    if (l !== "id" && l !== "en") l = /^(id|in)\b/i.test(navigator.language || "") ? "id" : "en";
+    document.documentElement.setAttribute("data-lang", l);
+    document.documentElement.lang = l;
+  })();
+</script>
 <style>
   /* Layout: a single centered column on near-black navy; one cyan accent, liquid-glass cards, a soft
      accent glow behind the hero. Committed dark look to match the app. */
@@ -138,83 +149,302 @@
   .disclaimer { color: var(--fg-3); font-size: 0.82rem; max-width: 70ch; }
   .disclaimer p { margin: 0 0 8px; }
 
+  /* ---- Download help, install, FAQ and changelog (WayXAuto's sections, in AutoMaxi's look) ---- */
+  .dl-help { color: var(--fg-3); font-size: 0.9rem; margin: 0; }
+  .dl-help a { color: inherit; text-decoration: underline; }
+  .faq { display: grid; gap: 12px; }
+  .faq .step { display: block; }
+  .faq summary { cursor: pointer; list-style: none; display: flex; justify-content: space-between; align-items: center; gap: 12px; }
+  .faq summary::-webkit-details-marker { display: none; }
+  .faq summary::after { content: "+"; font-family: var(--mono); font-weight: 600; font-size: 1.3rem; color: var(--accent); }
+  .faq details[open] summary::after { content: "\2212"; }
+  .faq summary h3 { margin: 2px 0; }
+  .faq h3 { font-family: var(--body); font-weight: 600; font-size: 1.02rem; margin: 0 0 3px; }
+  .faq p, .faq ol, .faq ul { color: var(--fg-2); font-size: 0.93rem; margin: 10px 0 0; }
+  .faq ol, .faq ul { padding-left: 1.2em; }
+  .faq li { margin: 4px 0; }
+  .faq b { color: var(--fg); font-weight: 600; }
+  .faq a { color: var(--accent); }
+  .faq .when { color: var(--fg-3); font-weight: 400; font-size: 0.82rem; margin-left: 8px; font-family: var(--mono); }
+  .faq .tag { display: inline-block; margin-left: 8px; padding: 2px 9px; border-radius: 999px; background: var(--accent); color: var(--on-accent); font-size: 0.72rem; font-weight: 700; vertical-align: 2px; }
+  .keys { display: grid; grid-template-columns: repeat(2, 1fr); gap: 10px; margin-top: 12px; }
+  @media (max-width: 560px) { .keys { grid-template-columns: 1fr; } }
+  .key { display: flex; align-items: center; gap: 12px; padding: 10px 12px; border-radius: 12px; background: rgba(255,255,255,0.03); border: 1px solid var(--glass-stroke); }
+  .key kbd { min-width: 48px; padding: 4px 8px; border-radius: 999px; border: 1px solid var(--glass-stroke); font: 600 0.85rem var(--mono); color: var(--accent); text-align: center; }
+  .key span { color: var(--fg-2); font-size: 0.9rem; }
+
+  /* ---- Language: both texts are in the page; the inactive one is hidden ---- */
+  html[data-lang="en"] [lang="id"], html[data-lang="id"] [lang="en"] { display: none !important; }
+  .lang {
+    position: fixed; z-index: 10;
+    top: max(12px, env(safe-area-inset-top, 0px)); right: max(12px, env(safe-area-inset-right, 0px));
+    display: flex; padding: 3px; border-radius: 999px;
+    background: rgba(8,13,21,0.82); border: 1px solid var(--glass-stroke);
+    -webkit-backdrop-filter: blur(16px); backdrop-filter: blur(16px);
+  }
+  .lang button {
+    width: 42px; height: 32px; border: 0; border-radius: 999px; background: transparent; cursor: pointer;
+    font: 700 0.82rem var(--body); color: var(--fg-2);
+  }
+  html[data-lang="en"] .lang [data-set="en"], html[data-lang="id"] .lang [data-set="id"] { background: var(--accent); color: var(--on-accent); }
+
   @media (prefers-reduced-motion: reduce) { * { transition: none !important; } }
 </style>
 </head>
 <body>
+  <div class="lang" role="group" aria-label="Language / Bahasa">
+    <button type="button" data-set="en" aria-label="English">EN</button>
+    <button type="button" data-set="id" aria-label="Bahasa Indonesia">ID</button>
+  </div>
   <main class="wrap">
 
     <header class="hero">
       <img class="logo" src="logo.png" alt="AutoMaxi logo">
       <h1>AutoMaxi</h1>
-      <p class="tagline">Navigation on your XMAX&nbsp;/&nbsp;NMAX cluster</p>
-      <p class="sub">AutoMaxi mirrors Android Auto onto your Yamaha instrument cluster — maps on the dash, controlled from your phone. Independent, free, and ad-free.</p>
+      <p class="tagline" lang="en">Android Auto on your XMAX&nbsp;/&nbsp;NMAX cluster</p>
+      <p class="tagline" lang="id">Android Auto di panel instrumen XMAX&nbsp;/&nbsp;NMAX kamu</p>
+      <p class="sub" lang="en">AutoMaxi shows Android Auto on your Yamaha instrument cluster over Bluetooth: maps and music on the dash, controlled from your handlebar or phone. Independent, free and ad-free.</p>
+      <p class="sub" lang="id">AutoMaxi menampilkan Android Auto di panel instrumen Yamaha kamu lewat Bluetooth: peta dan musik di dasbor, dikontrol dari tombol stang atau HP. Independen, gratis, dan tanpa iklan.</p>
 
       <div class="dl">
         <a class="btn" id="download" href="#" rel="noopener">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 3v12m0 0l-4-4m4 4l4-4"/><path d="M4 17v2a2 2 0 002 2h12a2 2 0 002-2v-2"/></svg>
-          Download for Android
+          <span lang="en">Download for Android</span><span lang="id">Unduh untuk Android</span>
         </a>
         <div class="dl-meta">
-          <span class="counter pending" id="counter"><b id="count">—</b> downloads</span>
+          <span class="counter pending" id="counter"><b id="count">—</b> <span lang="en">downloads</span><span lang="id">unduhan</span></span>
           <span aria-hidden="true"> · </span>
           <span id="ver">APK · Android 8+</span>
         </div>
+        <p class="dl-help" lang="en">Not from the Play Store, so Android asks you to allow it. <a href="#install">How to install</a></p>
+        <p class="dl-help" lang="id">Bukan dari Play Store, jadi Android akan minta izin dulu. <a href="#install">Cara instal</a></p>
       </div>
     </header>
 
     <section id="features">
-      <p class="eyebrow">What it does</p>
-      <h2>Your dash, with Android Auto on it</h2>
-      <p class="lead">AutoMaxi streams the Android Auto map to the XMAX / NMAX cluster and keeps it running while you ride. One connection, then hands-off.</p>
+      <p class="eyebrow"><span lang="en">What it does</span><span lang="id">Fitur</span></p>
+      <h2 lang="en">Your dash, with Android Auto on it</h2>
+      <h2 lang="id">Dasbor motormu, sekarang dengan Android Auto</h2>
+      <p class="lead" lang="en">AutoMaxi runs Android Auto on your phone and streams it to your XMAX / NMAX cluster whenever it is connected. Pick your cluster once, then ride.</p>
+      <p class="lead" lang="id">AutoMaxi menjalankan Android Auto di HP dan mengirimnya ke panel instrumen XMAX / NMAX setiap kali terhubung. Pilih panel instrumen sekali, lalu tinggal jalan.</p>
       <div class="grid">
         <div class="card">
-          <svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></svg>
-          <h3>One-button connect</h3>
-          <p>Tap Connect once. AutoMaxi finds your cluster, pairs, and streams until you stop it.</p>
+          <svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M7 7l10 10-5 5V2l5 5L7 17"/></svg>
+          <h3 lang="en">One-button connect</h3>
+          <h3 lang="id">Sekali ketuk terhubung</h3>
+          <p lang="en">Pair your cluster in Bluetooth settings once, then tap Connect. AutoMaxi streams until you stop it, even with the screen off.</p>
+          <p lang="id">Pasangkan panel instrumen di pengaturan Bluetooth sekali saja, lalu ketuk Hubungkan. AutoMaxi terus streaming sampai kamu hentikan, bahkan saat layar HP mati.</p>
         </div>
         <div class="card">
-          <svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="12" rx="2"/><path d="M8 20h8M12 16v4"/></svg>
-          <h3>Runs in the background</h3>
-          <p>Keeps streaming with the phone screen off, so your map stays live for the whole ride.</p>
+          <svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="6" width="18" height="10" rx="2"/><path d="M8 20h8"/></svg>
+          <h3 lang="en">Live preview on your phone</h3>
+          <h3 lang="id">Pratinjau langsung di HP</h3>
+          <p lang="en">Android Auto starts with the app, so you see exactly what your cluster shows before you set off.</p>
+          <p lang="id">Android Auto langsung jalan begitu aplikasi dibuka, jadi kamu bisa lihat persis apa yang tampil di panel instrumen sebelum berangkat.</p>
         </div>
         <div class="card">
-          <svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3C7 3 3 6.5 3 11c0 2.2 1 4 2.8 5.3L5 21l4.2-2.1c.9.2 1.8.3 2.8.3 5 0 9-3.5 9-8s-4-8-9-8z"/></svg>
-          <h3>Built for riders</h3>
-          <p>Designed for the XMAX / NMAX dash: the map fits the cluster, not a phone screen crammed onto it.</p>
+          <svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="7" width="20" height="9" rx="2"/><path d="M6 11h7M6 13h4"/></svg>
+          <h3 lang="en">Padded or Full screen</h3>
+          <h3 lang="id">Berbingkai atau Layar penuh</h3>
+          <p lang="en">Padded keeps the map clear of the cluster's left buttons and bottom bar. Full screen uses the whole width.</p>
+          <p lang="id">Berbingkai menjaga peta tidak tertutup tombol kiri dan bar bawah panel instrumen. Layar penuh memakai seluruh lebar.</p>
+        </div>
+        <div class="card">
+          <svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M8 10l4-4 4 4"/><path d="M8 14l4 4 4-4"/></svg>
+          <h3 lang="en">Handlebar buttons</h3>
+          <h3 lang="id">Tombol stang</h3>
+          <p lang="en">Control Android Auto with your bike's up and down buttons. The app has a guide and practice buttons to learn them.</p>
+          <p lang="id">Kontrol Android Auto dengan tombol atas dan bawah di stang motor. Aplikasi punya panduan dan tombol latihan untuk mempelajarinya.</p>
+        </div>
+        <div class="card">
+          <svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M9 11V6a2 2 0 014 0v5"/><path d="M13 10a2 2 0 014 0v3a7 7 0 01-7 7h-.5A5.5 5.5 0 014 14.5V12a2 2 0 014 0"/></svg>
+          <h3 lang="en">Touch on your phone</h3>
+          <h3 lang="id">Sentuh dari HP</h3>
+          <p lang="en">While parked, open the full-screen view and tap, drag or pinch Android Auto from your phone, or use the on-screen D-pad.</p>
+          <p lang="id">Saat motor berhenti, buka tampilan layar penuh lalu ketuk, geser, atau cubit Android Auto dari HP, atau pakai D-pad di layar.</p>
         </div>
         <div class="card">
           <svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3l7 3v5c0 4.4-3 7.8-7 9-4-1.2-7-4.6-7-9V6l7-3z"/><path d="M9.5 12l1.8 1.8L15 10"/></svg>
-          <h3>Free &amp; private</h3>
-          <p>No ads. No personal data. Free forever — supported entirely by optional donations.</p>
+          <h3 lang="en">Free &amp; independent</h3>
+          <h3 lang="id">Gratis &amp; independen</h3>
+          <p lang="en">No ads and no account. English and Bahasa Indonesia. Free forever, supported entirely by optional donations.</p>
+          <p lang="id">Tanpa iklan dan tanpa akun. Bahasa Inggris dan Bahasa Indonesia. Gratis selamanya, didukung sepenuhnya oleh donasi sukarela.</p>
         </div>
       </div>
     </section>
 
+    <section id="install">
+      <p class="eyebrow"><span lang="en">Install</span><span lang="id">Instalasi</span></p>
+      <h2 lang="en">Installing the APK</h2>
+      <h2 lang="id">Cara instal APK</h2>
+      <p class="lead" lang="en">AutoMaxi is downloaded from this site rather than the Play Store, so Android shows a few safety prompts the first time. They are normal for any app installed this way.</p>
+      <p class="lead" lang="id">AutoMaxi diunduh dari situs ini, bukan dari Play Store, jadi Android akan menampilkan beberapa peringatan keamanan saat pertama kali. Ini normal untuk semua aplikasi yang diinstal dengan cara ini.</p>
+      <div class="faq">
+        <div class="step"><h3><span lang="en">Download and install</span><span lang="id">Unduh dan instal</span></h3>
+          <ol lang="en">
+            <li>Tap <b>Download for Android</b>. If your browser warns that this type of file can be harmful, tap <b>Download anyway</b>.</li>
+            <li>Open the downloaded <b>AutoMaxi</b> file from the notification or your Downloads.</li>
+            <li>Android says your browser isn't allowed to install apps: tap <b>Settings</b>, turn on <b>Allow from this source</b>, then go back.</li>
+            <li>Tap <b>Install</b>, then <b>Open</b>.</li>
+          </ol>
+          <ol lang="id">
+            <li>Ketuk <b>Unduh untuk Android</b>. Kalau browser memperingatkan bahwa file ini bisa berbahaya, ketuk <b>Tetap download</b> (Download anyway).</li>
+            <li>Buka file <b>AutoMaxi</b> yang sudah diunduh, dari notifikasi atau folder Download.</li>
+            <li>Kalau Android bilang browser kamu tidak diizinkan menginstal aplikasi: ketuk <b>Setelan</b>, aktifkan <b>Izinkan dari sumber ini</b>, lalu kembali.</li>
+            <li>Ketuk <b>Instal</b>, lalu <b>Buka</b>.</li>
+          </ol>
+          <p lang="en">Updating? Install the new version over the old one. Your setup and keys are kept. AutoMaxi also tells you when a new version is out.</p>
+          <p lang="id">Mau update? Instal versi baru langsung di atas versi lama. Setup dan kunci kamu tetap tersimpan. AutoMaxi juga memberi tahu kalau ada versi baru.</p></div>
+        <div class="step"><h3><span lang="en">Play Protect says the app is unknown or unsafe</span><span lang="id">Play Protect bilang aplikasi ini tidak dikenal atau tidak aman</span></h3>
+          <p lang="en">Play Protect warns about apps that don't come from the Play Store. Tap <b>More details</b>, then <b>Install anyway</b>. If it offers to scan the app, you can let it.</p>
+          <p lang="id">Play Protect memperingatkan semua aplikasi yang bukan dari Play Store. Ketuk <b>Detail selengkapnya</b>, lalu <b>Tetap instal</b>. Kalau ditawari untuk memindai aplikasinya, boleh saja.</p>
+          <p lang="en">AutoMaxi doesn't read your SMS, contacts or notifications, and doesn't use Accessibility. It asks only for what it needs to reach your cluster: Bluetooth (nearby devices) and notifications to show that it's running. It may also ask to run without battery restrictions, so the stream keeps going with the screen off.</p>
+          <p lang="id">AutoMaxi tidak membaca SMS, kontak, atau notifikasi kamu, dan tidak memakai Aksesibilitas. Aplikasi ini hanya meminta izin yang dibutuhkan untuk terhubung ke panel instrumen: Bluetooth (perangkat di sekitar) dan notifikasi untuk menandakan aplikasi sedang berjalan. Aplikasi juga bisa minta izin berjalan tanpa batasan baterai, supaya streaming tetap jalan saat layar mati.</p>
+          <p lang="en">To check your download is the original file, compare its SHA-256 with the one on <a href="https://github.com/sdmv-apps/automaxi/releases/latest" rel="noopener" target="_blank">GitHub Releases</a>. The only official downloads are this page and AutoMaxi's GitHub Releases. Copies shared elsewhere may be modified, and AutoMaxi refuses to run if it was.</p>
+          <p lang="id">Untuk memastikan file yang kamu unduh masih asli, cocokkan SHA-256-nya dengan yang ada di <a href="https://github.com/sdmv-apps/automaxi/releases/latest" rel="noopener" target="_blank">GitHub Releases</a>. Unduhan resmi hanya dari halaman ini dan GitHub Releases AutoMaxi. Salinan yang dibagikan di tempat lain bisa saja sudah diubah, dan AutoMaxi menolak berjalan kalau begitu.</p></div>
+      </div>
+    </section>
+
     <section id="setup">
-      <p class="eyebrow">Getting started</p>
-      <h2>Three steps to the dash</h2>
-      <p class="lead">A short one-time setup — the app walks you through it and checks each step before you ride.</p>
+      <p class="eyebrow"><span lang="en">Getting started</span><span lang="id">Mulai</span></p>
+      <h2 lang="en">Three steps to the dash</h2>
+      <h2 lang="id">Tiga langkah ke dasbor</h2>
+      <p class="lead" lang="en">A short one-time setup. The app walks you through it and checks each step before you ride.</p>
+      <p class="lead" lang="id">Setup singkat, cukup sekali. Aplikasi akan memandu kamu dan mengecek setiap langkah sebelum berangkat.</p>
       <div class="steps">
-        <div class="step"><span class="n"></span><div><h3>Install AutoMaxi</h3><p>Download the APK and allow the install from your browser or files app.</p></div></div>
-        <div class="step"><span class="n"></span><div><h3>Import the keys &amp; enable Android Auto dev mode</h3><p>AutoMaxi links you to the free public Open Headunit keys and shows you how to switch on Android Auto's developer head-unit server.</p></div></div>
-        <div class="step"><span class="n"></span><div><h3>Pair your cluster, then Connect</h3><p>Pair the XMAX / NMAX in Bluetooth settings, open AutoMaxi, and tap Connect. That's it.</p></div></div>
+        <div class="step"><span class="n"></span><div lang="en"><h3>Install AutoMaxi</h3><p>Download the APK and allow the install from your browser or files app.</p></div><div lang="id"><h3>Instal AutoMaxi</h3><p>Unduh APK-nya, lalu izinkan instalasi dari browser atau aplikasi file kamu.</p></div></div>
+        <div class="step"><span class="n"></span><div lang="en"><h3>Get the keys &amp; start Android Auto's head unit server</h3><p>Tap Get keys: AutoMaxi downloads two free public files and sets them up. Then turn on Android Auto developer mode and start its head unit server. The app shows each step and ticks it off by itself.</p></div><div lang="id"><h3>Unduh kunci &amp; jalankan server head unit Android Auto</h3><p>Ketuk Unduh kunci: AutoMaxi akan mengunduh dua file publik gratis dan langsung memasangnya. Lalu aktifkan mode developer Android Auto dan jalankan server head unit-nya. Aplikasi menampilkan setiap langkah dan mencentangnya sendiri.</p></div></div>
+        <div class="step"><span class="n"></span><div lang="en"><h3>Pair your cluster, then Connect</h3><p>Pair the XMAX / NMAX in Android's Bluetooth settings (its name starts with YCCU), open AutoMaxi and tap Connect. Android Auto appears on the dash.</p></div><div lang="id"><h3>Pasangkan panel instrumen, lalu Hubungkan</h3><p>Pasangkan XMAX / NMAX di pengaturan Bluetooth Android (namanya diawali YCCU), buka AutoMaxi, lalu ketuk Hubungkan. Android Auto akan muncul di dasbor.</p></div></div>
+      </div>
+    </section>
+
+    <section id="faq">
+      <p class="eyebrow"><span lang="en">Questions</span><span lang="id">Pertanyaan</span></p>
+      <h2 lang="en">Setup, explained</h2>
+      <h2 lang="id">Penjelasan setup</h2>
+      <div class="faq">
+        <details class="step"><summary><h3><span lang="en">What do the handlebar buttons do?</span><span lang="id">Apa fungsi tombol stang?</span></h3></summary>
+          <p lang="en">The cluster sends AutoMaxi the presses of its up and down buttons. A quick double press counts as a separate action:</p>
+          <p lang="id">Panel instrumen mengirim tekanan tombol atas dan bawah ke AutoMaxi. Tekan dua kali cepat dihitung sebagai aksi tersendiri:</p>
+          <div class="keys" lang="en">
+            <div class="key"><kbd>▲</kbd><span><b>Next item</b> · moves the highlight</span></div>
+            <div class="key"><kbd>▲ ×2</kbd><span><b>Next area</b> · map, dock, music</span></div>
+            <div class="key"><kbd>▼</kbd><span><b>Select</b> · opens what's highlighted</span></div>
+            <div class="key"><kbd>▼ ×2</kbd><span><b>Back</b> · one step back</span></div>
+          </div>
+          <div class="keys" lang="id">
+            <div class="key"><kbd>▲</kbd><span><b>Item berikutnya</b> · geser sorotan</span></div>
+            <div class="key"><kbd>▲ ×2</kbd><span><b>Area berikutnya</b> · peta, dock, musik</span></div>
+            <div class="key"><kbd>▼</kbd><span><b>Pilih</b> · buka yang disorot</span></div>
+            <div class="key"><kbd>▼ ×2</kbd><span><b>Kembali</b> · mundur satu langkah</span></div>
+          </div>
+          <p lang="en">The same guide is under the preview in the app, with practice buttons: the matching tile lights up so you can learn them before you ride.</p>
+          <p lang="id">Panduan yang sama ada di bawah pratinjau di aplikasi, lengkap dengan tombol latihan: kotak aksinya akan menyala, jadi kamu bisa belajar sebelum berangkat.</p></details>
+        <details class="step"><summary><h3><span lang="en">Where do the head unit keys come from?</span><span lang="id">Dari mana asal kunci head unit?</span></h3></summary>
+          <p lang="en">Android Auto only connects to a head unit that presents a certificate. AutoMaxi uses the free sample certificate and key from <a href="https://github.com/andreknieriem/open-headunit/tree/a8d8a92d80256feee56174a21d2d33cc2664c9a7/app/src/main/res/raw" rel="noopener" target="_blank">Open Headunit</a>, an open-source Android Auto head unit project on GitHub. They are published openly for testing, so everyone gets the same two files. They aren't secret, contain nothing about you, your phone or your motorcycle, and don't unlock anything. The certificate is labelled &ldquo;Google-Android-Reference&rdquo;, the name of that sample identity.</p>
+          <p lang="id">Android Auto hanya mau terhubung ke head unit yang punya sertifikat. AutoMaxi memakai sertifikat dan kunci contoh gratis dari <a href="https://github.com/andreknieriem/open-headunit/tree/a8d8a92d80256feee56174a21d2d33cc2664c9a7/app/src/main/res/raw" rel="noopener" target="_blank">Open Headunit</a>, proyek head unit Android Auto open-source di GitHub. File ini dibagikan secara terbuka untuk pengujian, jadi semua orang mendapat dua file yang sama. Isinya bukan rahasia, tidak berisi data apa pun tentang kamu, HP, atau motor kamu, dan tidak membuka akses apa pun. Sertifikatnya bernama &ldquo;Google-Android-Reference&rdquo;, yaitu nama identitas contoh tersebut.</p>
+          <p lang="en">AutoMaxi doesn't include them in the app. When you tap Get keys, it downloads them from GitHub, from the exact version AutoMaxi was tested with, checks their fingerprints and keeps them inside the app only.</p>
+          <p lang="id">AutoMaxi tidak menyertakan file ini di dalam aplikasi. Saat kamu ketuk Unduh kunci, aplikasi mengambilnya dari GitHub, dari versi yang sama persis dengan yang sudah diuji, mengecek sidik jarinya, lalu menyimpannya hanya di dalam aplikasi.</p></details>
+        <details class="step"><summary><h3><span lang="en">How do I turn on Android Auto developer mode?</span><span lang="id">Bagaimana cara mengaktifkan mode developer Android Auto?</span></h3></summary>
+          <ol lang="en">
+            <li>In AutoMaxi setup, tap <b>Open Android Auto settings</b>.</li>
+            <li>Scroll to the very bottom and tap <b>Version</b> about 10 times. When Android Auto asks to allow development settings, tap <b>OK</b>.</li>
+            <li>Tap <b>&#8942;</b> at the top right, then <b>Start head unit server</b>. No &#8942; menu yet? Do step 2 again.</li>
+            <li>Come back to AutoMaxi. The step turns green by itself.</li>
+          </ol>
+          <ol lang="id">
+            <li>Di setup AutoMaxi, ketuk <b>Buka pengaturan Android Auto</b>.</li>
+            <li>Gulir ke paling bawah, lalu ketuk <b>Versi</b> (Version) sekitar 10 kali. Saat Android Auto minta izin untuk setelan developer, ketuk <b>OK</b>.</li>
+            <li>Ketuk <b>&#8942;</b> di kanan atas, lalu pilih <b>Start head unit server</b>. Menu &#8942; belum muncul? Ulangi langkah 2.</li>
+            <li>Kembali ke AutoMaxi. Langkah ini otomatis jadi hijau.</li>
+          </ol>
+          <p lang="en">Developer mode stays on. After a phone restart, Clear all in Recents, or if Android Auto stops the server, only step 3 is needed again.</p>
+          <p lang="id">Mode developer tetap aktif. Setelah HP restart, Hapus semua di Terbaru, atau kalau Android Auto menghentikan server, cukup ulangi langkah 3.</p></details>
+        <details class="step"><summary><h3><span lang="en">Android Auto doesn't answer on my Xiaomi, Redmi or POCO phone</span><span lang="id">Android Auto tidak merespons di HP Xiaomi, Redmi, atau POCO</span></h3></summary>
+          <p lang="en">These phones pause apps in the background, including Android Auto, so it can't answer AutoMaxi. AutoMaxi's setup shows this as step 4.</p>
+          <p lang="id">HP ini menjeda aplikasi di latar belakang, termasuk Android Auto, jadi Android Auto tidak bisa merespons AutoMaxi. Di setup AutoMaxi, ini ada di langkah 4.</p>
+          <ol lang="en">
+            <li>Open Settings &rarr; Apps &rarr; <b>Android Auto</b> (or tap <b>Open Android Auto app info</b> in AutoMaxi).</li>
+            <li>Turn on <b>Autostart</b>.</li>
+            <li>Tap <b>Battery saver</b> and choose <b>No restrictions</b>.</li>
+            <li>Come back to AutoMaxi and start Android Auto again.</li>
+          </ol>
+          <ol lang="id">
+            <li>Buka Pengaturan &rarr; Aplikasi &rarr; <b>Android Auto</b> (atau ketuk <b>Buka info aplikasi Android Auto</b> di AutoMaxi).</li>
+            <li>Aktifkan <b>Mulai otomatis</b> (Autostart).</li>
+            <li>Ketuk <b>Penghemat baterai</b> (Battery saver), lalu pilih <b>Tanpa batasan</b> (No restrictions).</li>
+            <li>Kembali ke AutoMaxi, lalu mulai Android Auto lagi.</li>
+          </ol></details>
+        <details class="step"><summary><h3><span lang="en">AutoMaxi can't find my cluster</span><span lang="id">AutoMaxi tidak menemukan panel instrumen saya</span></h3></summary>
+          <ol lang="en">
+            <li>Turn on your motorcycle and pair the cluster in Android's <b>Bluetooth</b> settings first. Its name starts with <b>YCCU</b>.</li>
+            <li>Allow AutoMaxi's Bluetooth permission when it asks.</li>
+            <li>Tap <b>Connect</b> and choose your cluster. AutoMaxi remembers it and reconnects by itself.</li>
+          </ol>
+          <ol lang="id">
+            <li>Nyalakan motor dan pasangkan panel instrumen dulu di pengaturan <b>Bluetooth</b> Android. Namanya diawali <b>YCCU</b>.</li>
+            <li>Izinkan akses Bluetooth AutoMaxi saat diminta.</li>
+            <li>Ketuk <b>Hubungkan</b> dan pilih panel instrumen kamu. AutoMaxi akan mengingatnya dan menyambung ulang sendiri.</li>
+          </ol></details>
+      </div>
+    </section>
+
+    <section id="changelog">
+      <p class="eyebrow"><span lang="en">Changelog</span><span lang="id">Riwayat versi</span></p>
+      <h2 lang="en">What's new</h2>
+      <h2 lang="id">Yang baru</h2>
+      <div class="faq">
+        <details class="step" open><summary><h3>AutoMaxi 0.2.1<span class="tag"><span lang="en">Latest</span><span lang="id">Terbaru</span></span><span class="when"><span lang="en">31 Oct 2026</span><span lang="id">31 Okt 2026</span></span></h3></summary>
+          <ul lang="en">
+            <li><b>Android Auto starts with the app.</b> It runs on your phone with a live preview as soon as you open AutoMaxi, before you connect your cluster.</li>
+            <li><b>Padded or Full screen.</b> A new switch sits under the preview. The preview now shows exactly what your cluster shows, and sharper.</li>
+            <li><b>Handlebar buttons.</b> ▲ next item, ▲ twice next area (map, dock, music), ▼ select, ▼ twice back, with a guide and practice buttons under the preview.</li>
+            <li><b>Touch on your phone.</b> A full-screen view lets you tap, drag and pinch Android Auto from your phone while parked, plus an on-screen D-pad.</li>
+            <li><b>Bahasa Indonesia, easier setup and update notes.</b> One-tap keys, an extra step for Xiaomi / Redmi / POCO, and update prompts that show what's new.</li>
+          </ul>
+          <ul lang="id">
+            <li><b>Android Auto langsung jalan.</b> Android Auto berjalan di HP dengan pratinjau langsung begitu AutoMaxi dibuka, sebelum panel instrumen terhubung.</li>
+            <li><b>Berbingkai atau Layar penuh.</b> Ada pilihan baru di bawah pratinjau. Pratinjau kini sama persis dengan panel instrumen, dan lebih tajam.</li>
+            <li><b>Tombol stang.</b> ▲ item berikutnya, ▲ dua kali area berikutnya (peta, dock, musik), ▼ pilih, ▼ dua kali kembali, lengkap dengan panduan dan tombol latihan di bawah pratinjau.</li>
+            <li><b>Sentuh dari HP.</b> Tampilan layar penuh untuk mengetuk, menggeser, dan mencubit Android Auto dari HP saat motor berhenti, plus D-pad di layar.</li>
+            <li><b>Bahasa Indonesia, setup lebih mudah, dan catatan update.</b> Unduh kunci sekali ketuk, langkah tambahan untuk Xiaomi / Redmi / POCO, dan notifikasi update yang menampilkan yang baru.</li>
+          </ul></details>
+        <details class="step"><summary><h3>AutoMaxi 0.2.0<span class="when"><span lang="en">27 Oct 2026</span><span lang="id">27 Okt 2026</span></span></h3></summary>
+          <ul lang="en">
+            <li><b>Update check.</b> AutoMaxi tells you when a newer version is available and links to the download.</li>
+            <li><b>Steadier streaming.</b> Fewer black-screen drops on the cluster.</li>
+          </ul>
+          <ul lang="id">
+            <li><b>Cek update.</b> AutoMaxi memberi tahu kalau ada versi baru dan menautkan ke unduhannya.</li>
+            <li><b>Streaming lebih stabil.</b> Layar hitam di panel instrumen jadi lebih jarang.</li>
+          </ul></details>
+        <details class="step"><summary><h3>AutoMaxi 0.1.0<span class="when"><span lang="en">27 Oct 2026</span><span lang="id">27 Okt 2026</span></span></h3></summary>
+          <ul lang="en">
+            <li><b>First public release.</b> Android Auto navigation on the Yamaha XMAX / NMAX instrument cluster.</li>
+            <li><b>One-button connect and background streaming.</b> Free, ad-free, no personal data.</li>
+          </ul>
+          <ul lang="id">
+            <li><b>Rilis publik pertama.</b> Navigasi Android Auto di panel instrumen Yamaha XMAX / NMAX.</li>
+            <li><b>Sekali ketuk terhubung dan streaming di latar belakang.</b> Gratis, tanpa iklan, tanpa data pribadi.</li>
+          </ul></details>
       </div>
     </section>
 
     <section id="support">
       <div class="support">
-        <p class="eyebrow">Keep it free</p>
-        <h2>Enjoying AutoMaxi?</h2>
-        <p class="lead" style="margin-bottom:0">It's free, ad-free, and built by one rider in his spare time. If it earned a place on your dash, a small tip keeps the fixes and new features coming — and keeps AutoMaxi free for everyone.</p>
+        <p class="eyebrow"><span lang="en">Keep it free</span><span lang="id">Bantu tetap gratis</span></p>
+        <h2 lang="en">Enjoying AutoMaxi?</h2>
+        <h2 lang="id">Suka AutoMaxi?</h2>
+        <p class="lead" style="margin-bottom:0" lang="en">It's free, ad-free, and built by one rider in his spare time. If it earned a place on your dash, a small tip keeps the fixes and new features coming, and keeps AutoMaxi free for everyone.</p>
+        <p class="lead" style="margin-bottom:0" lang="id">AutoMaxi gratis, tanpa iklan, dan dibuat oleh satu orang rider di waktu luangnya. Kalau aplikasi ini bermanfaat di motormu, sedikit dukungan bikin perbaikan dan fitur baru terus hadir, dan AutoMaxi tetap gratis untuk semua.</p>
         <div class="rows">
           <a class="srow saweria" href="https://saweria.co/sdmv" target="_blank" rel="noopener">
             <span class="tile"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 21s-7.5-4.6-10-9.3C.6 8.6 2 5.5 5 5.1c2-.3 3.5.8 4.3 2.1.3.5.6 1 .7 1.3.1-.3.4-.8.7-1.3C11.5 5.9 13 4.8 15 5.1c3 .4 4.4 3.5 3 6.6C19.5 16.4 12 21 12 21z"/></svg></span>
-            <span><span class="t">Saweria</span><br><span class="h">For riders in Indonesia</span></span>
+            <span><span class="t">Saweria</span><br><span class="h"><span lang="en">For riders in Indonesia</span><span lang="id">Untuk rider di Indonesia</span></span></span>
           </a>
           <a class="srow kofi" href="https://ko-fi.com/sdmvdash" target="_blank" rel="noopener">
             <span class="tile"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 8h13v5a4 4 0 01-4 4H8a4 4 0 01-4-4V8z"/><path d="M17 9h2.5a2.5 2.5 0 010 5H17"/><path d="M8 3v2M12 3v2"/></svg></span>
-            <span><span class="t">Ko-fi</span><br><span class="h">For riders worldwide</span></span>
+            <span><span class="t">Ko-fi</span><br><span class="h"><span lang="en">For riders worldwide</span><span lang="id">Untuk rider di seluruh dunia</span></span></span>
           </a>
         </div>
       </div>
@@ -223,11 +453,17 @@
     <footer>
       <div class="sdmv">
         <img src="sdmv.png" alt="SDMV" onerror="this.style.display='none'">
-        <span>An SDMV project</span>
+        <span><span lang="en">An SDMV project</span><span lang="id">Proyek dari SDMV</span></span>
       </div>
-      <div class="disclaimer">
+      <div class="disclaimer" lang="en">
         <p>Not affiliated with, endorsed by, or supported by Yamaha or Google. XMAX, NMAX, Android Auto and related names are trademarks of their respective owners.</p>
-        <p>AutoMaxi is experimental software, provided as-is with no warranty. Never interact with your phone or cluster while riding — set up everything before you set off, and use it lawfully.</p>
+        <p>Privacy: the app uses Google Analytics (Firebase) for anonymous usage statistics: active devices, app version and country. No account, no ads, no advertising ID or location. This site doesn't track you.</p>
+        <p>AutoMaxi is experimental software, provided as-is with no warranty. Never interact with your phone or the cluster while riding: set up everything before you set off, and use it lawfully.</p>
+      </div>
+      <div class="disclaimer" lang="id">
+        <p>Tidak berafiliasi dengan Yamaha atau Google, dan tidak didukung oleh keduanya. XMAX, NMAX, Android Auto, dan nama terkait adalah merek dagang milik pemiliknya masing-masing.</p>
+        <p>Privasi: aplikasinya memakai Google Analytics (Firebase) untuk statistik pemakaian anonim: jumlah perangkat aktif, versi aplikasi, dan negara. Tanpa akun, tanpa iklan, tanpa ID iklan atau lokasi. Situs ini tidak melacak kamu.</p>
+        <p>AutoMaxi adalah software eksperimental, disediakan apa adanya tanpa garansi. Jangan pernah mengoperasikan HP atau panel instrumen saat berkendara: atur semuanya sebelum berangkat, dan gunakan sesuai aturan yang berlaku.</p>
       </div>
     </footer>
 
@@ -236,36 +472,50 @@
 <script>
   // ---- GitHub Releases config: set OWNER (and REPO if you rename it) ----
   var OWNER = "sdmv-apps";    // GitHub account
-  var REPO  = "automaxi";      // public distribution repo (website + APK releases)
+  var REPO  = "automaxi";     // public distribution repo (website + APK releases)
   // ----------------------------------------------------------------------
   var RELEASES_PAGE = "https://github.com/" + OWNER + "/" + REPO + "/releases/latest";
 
   (function () {
+    var root = document.documentElement;
     var btn = document.getElementById("download");
     var countEl = document.getElementById("count");
     var counterEl = document.getElementById("counter");
     var verEl = document.getElementById("ver");
+    var total = null;
     // Fallback that always works even if the API call fails or JS is slow.
     btn.href = RELEASES_PAGE;
 
-    function fmt(n) { return n.toLocaleString("en-US"); }
+    function fmt(n) { return n.toLocaleString(root.getAttribute("data-lang") === "id" ? "id-ID" : "en-US"); }
+
+    // EN | ID switch: both texts are in the page; this only flips which one shows and remembers the choice.
+    Array.prototype.forEach.call(document.querySelectorAll(".lang [data-set]"), function (b) {
+      b.addEventListener("click", function () {
+        var l = b.getAttribute("data-set");
+        if (root.getAttribute("data-lang") === l) return;
+        root.setAttribute("data-lang", l); root.lang = l;
+        try { localStorage.setItem("lang", l); } catch (e) {}
+        if (total !== null) countEl.textContent = fmt(total);
+      });
+    });
 
     fetch("https://api.github.com/repos/" + OWNER + "/" + REPO + "/releases")
       .then(function (r) { if (!r.ok) throw new Error("http " + r.status); return r.json(); })
       .then(function (releases) {
         if (!Array.isArray(releases) || !releases.length) throw new Error("no releases");
         // Total downloads = every APK asset across every published release.
-        var total = 0, latestApk = null, latestTag = null;
+        var sum = 0, latestApk = null, latestTag = null;
         releases.forEach(function (rel) {
           (rel.assets || []).forEach(function (a) {
             if (/\.apk$/i.test(a.name)) {
-              total += a.download_count || 0;
+              sum += a.download_count || 0;
               if (!latestApk && !rel.prerelease && !rel.draft) { latestApk = a.browser_download_url; latestTag = rel.tag_name; }
             }
           });
         });
         if (latestApk) btn.href = latestApk;
         if (latestTag) verEl.textContent = latestTag + " · Android 8+";
+        total = sum;
         countEl.textContent = fmt(total);
         counterEl.classList.remove("pending");
       })
