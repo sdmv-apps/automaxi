@@ -11,7 +11,8 @@
 <meta property="og:image" content="logo.png">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Chivo:wght@700;800;900&family=IBM+Plex+Mono:wght@500;600&family=IBM+Plex+Sans:wght@400;500;600&display=swap">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Figtree:wght@400;500;600;700&display=swap">
+<meta name="theme-color" content="#08090B">
 <script>
   // Language before first paint: ?lang=id|en (shareable), else the rider's last choice, else the browser's language.
   (function () {
@@ -24,41 +25,60 @@
   })();
 </script>
 <style>
-  /* Layout: a single centered column on near-black navy; one cyan accent, liquid-glass cards, a soft
-     accent glow behind the hero. Committed dark look to match the app. */
+  /* Layout: a single centred column in the app's look: monochrome dark frosted glass over a near-black
+     backdrop with soft neutral glows, WayXAuto's radii (cards 28, controls fully round) and Figtree.
+     The logo is the only blue; the main action is a white pill; green marks the latest version. */
   :root {
-    --bg: #05080D;
-    --bg-2: #080d15;
-    --fg: #F2F6FA;
-    --fg-2: #9AA8B6;
-    --fg-3: #66778A;
-    --accent: #46D9E6;
-    --accent-press: #2FB5C1;
-    --on-accent: #00262B;
+    --bg: #08090B;
+    --fg: #EDEEF0;
+    --fg-2: #A4AAB2;
+    --fg-3: #767D87;
+    --accent: #F2F3F5;
+    --on-accent: #0A0B0D;
+    --live: #3FCB83;
     --saweria: #F5A524;
     --kofi: #29ABE0;
-    --glass: rgba(255,255,255,0.045);
-    --glass-stroke: rgba(255,255,255,0.09);
-    --glass-sheen: rgba(255,255,255,0.14);
+    /* The app's glass tokens: white at very low alpha (smoked, not milky) with a crisp edge. */
+    --glass-top: rgba(255,255,255,0.05);
+    --glass-bottom: rgba(255,255,255,0.02);
+    --glass-edge: rgba(255,255,255,0.10);
+    --glass-rim: rgba(255,255,255,0.30);
+    --glass-track: rgba(0,0,0,0.30);
+    --thumb-top: rgba(255,255,255,0.14);
+    --thumb-bottom: rgba(255,255,255,0.08);
+    --tile: rgba(255,255,255,0.04);
+    --tile-edge: rgba(255,255,255,0.06);
     --hairline: rgba(255,255,255,0.08);
-    --display: "Chivo", "Arial Black", sans-serif;
-    --body: "IBM Plex Sans", system-ui, -apple-system, Segoe UI, Roboto, sans-serif;
-    --mono: "IBM Plex Mono", ui-monospace, SFMono-Regular, Menlo, monospace;
+    --font: "Figtree", system-ui, -apple-system, Segoe UI, Roboto, sans-serif;
+    /* Press: sink fast, spring back with a little overshoot (the app's press_scale). */
+    --spring: cubic-bezier(.34,1.56,.64,1);
     color-scheme: dark;
   }
   * { box-sizing: border-box; }
-  html { -webkit-text-size-adjust: 100%; }
+  html { -webkit-text-size-adjust: 100%; -webkit-tap-highlight-color: transparent; }
   body {
     margin: 0;
     background: var(--bg);
     color: var(--fg);
-    font-family: var(--body);
+    font-family: var(--font);
     line-height: 1.6;
     font-size: 16px;
     overflow-x: hidden;
   }
+  /* The app's backdrop: three soft neutral glows, fixed so the glass cards pick them up as they scroll. */
+  body::before {
+    content: ""; position: fixed; inset: 0; z-index: -1; pointer-events: none;
+    background:
+      radial-gradient(circle max(560px, 45vw) at 10% 0%, rgba(255,255,255,0.12), rgba(255,255,255,0.03) 50%, transparent),
+      radial-gradient(circle max(480px, 38vw) at 100% 55%, rgba(255,255,255,0.07), rgba(255,255,255,0.02) 50%, transparent),
+      radial-gradient(circle max(520px, 40vw) at 0% 100%, rgba(255,255,255,0.06), rgba(255,255,255,0.016) 50%, transparent);
+  }
   img { max-width: 100%; display: block; }
   a { color: var(--accent); text-decoration: none; }
+  /* Links inside text: off-white like the app's links, underlined so they still read as links. */
+  p a, li a { color: var(--fg); text-decoration: underline; text-decoration-color: rgba(255,255,255,0.35); text-underline-offset: 3px; transition: text-decoration-color .12s ease; }
+  p a:hover, li a:hover { text-decoration-color: var(--fg); }
+  :focus-visible { outline: 2px solid var(--accent); outline-offset: 3px; }
   .wrap {
     width: 100%;
     max-width: 960px;
@@ -67,80 +87,90 @@
     padding-right: max(20px, env(safe-area-inset-right, 0px));
   }
 
+  /* ---- Glass: cards, steps, questions and the support block share the app's card ---- */
+  .card, .step, .support {
+    position: relative; min-width: 0;
+    border: 1px solid var(--glass-edge); border-radius: 28px;
+    background:
+      /* specular rim along the top edge, inset 32px */
+      linear-gradient(90deg, transparent, var(--glass-rim), transparent) 32px 0 / calc(100% - 64px) 1px no-repeat border-box,
+      /* sheen over the top third */
+      linear-gradient(180deg, rgba(255,255,255,0.04), rgba(255,255,255,0.008) 30%, transparent 100%),
+      linear-gradient(180deg, var(--glass-top), var(--glass-bottom));
+  }
+
   /* ---- Hero ---- */
-  .hero { position: relative; text-align: center; padding-block: 72px 48px; }
-  .hero::before {
-    content: "";
-    position: absolute; left: 50%; top: -80px; transform: translateX(-50%);
-    width: 680px; max-width: 120%; height: 480px;
-    background: radial-gradient(ellipse at center, rgba(70,217,230,0.18), rgba(70,217,230,0.05) 42%, transparent 68%);
-    filter: blur(12px); z-index: 0; pointer-events: none;
-  }
-  .hero > * { position: relative; z-index: 1; }
-  .logo { width: 108px; height: auto; margin: 0 auto 22px; filter: drop-shadow(0 8px 28px rgba(70,217,230,0.28)); }
+  .hero { text-align: center; padding-block: 72px 48px; }
+  .logo { width: 108px; height: auto; margin: 0 auto 22px; filter: drop-shadow(0 12px 32px rgba(0,0,0,0.55)); }
   h1 {
-    font-family: var(--display); font-weight: 900;
-    font-size: clamp(2.8rem, 10vw, 4.6rem); line-height: 0.98;
-    letter-spacing: -0.02em; margin: 0; text-wrap: balance;
+    font-weight: 700;
+    font-size: clamp(2.8rem, 10vw, 4.6rem); line-height: 1;
+    letter-spacing: -0.035em; margin: 0; text-wrap: balance;
   }
-  .tagline { color: var(--fg); font-size: clamp(1.05rem, 3.5vw, 1.4rem); font-weight: 500; margin: 16px auto 0; max-width: 30ch; text-wrap: balance; }
+  .tagline { color: var(--fg); font-size: clamp(1.05rem, 3.5vw, 1.4rem); font-weight: 500; letter-spacing: -0.01em; margin: 16px auto 0; max-width: 30ch; text-wrap: balance; }
   .sub { color: var(--fg-2); margin: 14px auto 0; max-width: 54ch; }
 
-  /* ---- Download ---- */
+  /* ---- Download: the app's white primary button ---- */
   .dl { margin-top: 34px; display: flex; flex-direction: column; align-items: center; gap: 14px; }
   .btn {
-    display: inline-flex; align-items: center; gap: 10px;
-    background: var(--accent); color: var(--on-accent);
-    font-family: var(--body); font-weight: 600; font-size: 1.08rem;
-    padding: 15px 30px; border-radius: 14px; border: 0;
-    box-shadow: 0 10px 30px rgba(70,217,230,0.28); cursor: pointer;
-    transition: transform .12s ease, background .12s ease, box-shadow .12s ease;
+    display: inline-flex; align-items: center; justify-content: center; gap: 10px;
+    min-height: 56px; padding: 0 30px; border: 0; border-radius: 999px; cursor: pointer;
+    color: var(--on-accent); font: 600 1.05rem/1 var(--font);
+    /* bright top, a gloss band over the upper part, cooler lower edge; depth from shading, no shadow */
+    background:
+      linear-gradient(180deg, rgba(255,255,255,0.7), rgba(255,255,255,0) 40%),
+      linear-gradient(180deg, #FFFFFF, #EEF0F2 55%, #D3D7DC);
+    transition: transform .16s var(--spring);
   }
-  .btn:hover { background: var(--accent-press); transform: translateY(-1px); }
-  .btn:active { transform: translateY(0); }
+  .btn:hover { background: linear-gradient(180deg, rgba(255,255,255,0.7), rgba(255,255,255,0) 40%), linear-gradient(180deg, #FFFFFF, #F3F4F6 55%, #DCDFE3); }
+  .btn:active { background: linear-gradient(180deg, #E2E4E8, #C3C7CD); transform: scale(.96); transition: transform .08s ease-out; }
   .btn svg { width: 20px; height: 20px; }
-  .dl-meta { color: var(--fg-3); font-size: 0.9rem; }
+  .dl-meta { color: var(--fg-3); font-size: 0.9rem; font-variant-numeric: tabular-nums; }
   .counter { display: inline-flex; align-items: baseline; gap: 7px; color: var(--fg-2); font-size: 0.95rem; }
-  .counter b { font-family: var(--mono); font-weight: 600; color: var(--fg); font-size: 1.05rem; font-variant-numeric: tabular-nums; }
+  /* Room for the real numbers before they arrive, so the line doesn't shift when they fill in. */
+  .counter b { font-weight: 600; color: var(--fg); font-size: 1.05rem; display: inline-block; min-width: 3.6em; text-align: right; }
   .counter.pending b { color: var(--fg-3); }
+  #ver { display: inline-block; min-width: 9em; text-align: left; }
 
   /* ---- Sections ---- */
   section { padding-block: 40px; }
-  .eyebrow { font-family: var(--mono); text-transform: uppercase; letter-spacing: 0.18em; font-size: 0.72rem; color: var(--accent); margin: 0 0 10px; }
-  h2 { font-family: var(--display); font-weight: 800; font-size: clamp(1.6rem, 5vw, 2.2rem); letter-spacing: -0.01em; margin: 0 0 8px; text-wrap: balance; }
+  /* The app's section label: small, quiet capitals. */
+  .eyebrow { text-transform: uppercase; letter-spacing: 0.12em; font-size: 0.74rem; font-weight: 600; color: var(--fg-3); margin: 0 0 10px; }
+  h2 { font-weight: 700; font-size: clamp(1.6rem, 5vw, 2.2rem); line-height: 1.15; letter-spacing: -0.025em; margin: 0 0 10px; text-wrap: balance; }
   .lead { color: var(--fg-2); max-width: 60ch; margin: 0 0 26px; }
 
   .grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 16px; }
   @media (max-width: 560px) { .grid { grid-template-columns: 1fr; } }
-  .card {
-    background: var(--glass); border: 1px solid var(--glass-stroke); border-radius: 16px;
-    padding: 22px; position: relative; overflow: hidden; min-width: 0;
-  }
-  .card::before { content: ""; position: absolute; inset: 0 0 auto; height: 1px; background: linear-gradient(90deg, transparent, var(--glass-sheen), transparent); }
-  .card .ic { width: 38px; height: 38px; color: var(--accent); margin-bottom: 14px; }
-  .card h3 { font-family: var(--body); font-weight: 600; font-size: 1.1rem; margin: 0 0 6px; }
+  .card { padding: 24px; }
+  /* Icon in the app's 14px-radius tile. */
+  .card .ic { width: 44px; height: 44px; padding: 10px; border-radius: 14px; background: var(--tile); border: 1px solid var(--tile-edge); color: var(--fg); margin-bottom: 16px; }
+  .card h3 { font-weight: 600; font-size: 1.1rem; letter-spacing: -0.01em; margin: 0 0 6px; }
   .card p { color: var(--fg-2); margin: 0; font-size: 0.95rem; }
 
   /* ---- Steps ---- */
   .steps { display: grid; gap: 14px; counter-reset: step; }
-  .step { display: grid; grid-template-columns: auto 1fr; gap: 16px; align-items: start; background: var(--glass); border: 1px solid var(--glass-stroke); border-radius: 14px; padding: 18px 20px; }
-  .step .n { counter-increment: step; font-family: var(--mono); font-weight: 600; color: var(--accent); font-size: 1.05rem; }
-  .step .n::before { content: counter(step, decimal-leading-zero); }
-  .step h3 { font-family: var(--body); font-weight: 600; font-size: 1.02rem; margin: 0 0 3px; }
+  .step { display: grid; grid-template-columns: auto 1fr; gap: 16px; align-items: start; padding: 20px 22px; }
+  .step .n { counter-increment: step; width: 32px; height: 32px; border-radius: 999px; display: grid; place-items: center; background: var(--tile); border: 1px solid var(--tile-edge); font-weight: 600; font-size: 0.9rem; font-variant-numeric: tabular-nums; color: var(--fg); }
+  .step .n::before { content: counter(step); }
+  .step h3 { font-weight: 600; font-size: 1.02rem; margin: 4px 0 3px; }
   .step p { color: var(--fg-2); margin: 0; font-size: 0.93rem; }
 
   /* ---- Support ---- */
-  .support { background: var(--glass); border: 1px solid var(--glass-stroke); border-radius: 18px; padding: 28px; }
-  .support .rows { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; margin-top: 20px; }
-  @media (max-width: 560px) { .support .rows { grid-template-columns: 1fr; } }
-  .srow { display: flex; align-items: center; gap: 14px; padding: 16px 18px; border-radius: 13px; border: 1px solid var(--glass-stroke); background: rgba(255,255,255,0.02); transition: border-color .12s ease, transform .12s ease; }
-  .srow:hover { transform: translateY(-1px); }
-  .srow .tile { width: 42px; height: 42px; border-radius: 11px; display: grid; place-items: center; flex: 0 0 auto; }
+  .support { padding: 28px; }
+  .support .rows { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-top: 20px; }
+  @media (max-width: 560px) { .support { padding: 22px; } .support .rows { grid-template-columns: 1fr; } }
+  .srow {
+    display: flex; align-items: center; gap: 14px; padding: 14px 16px; border-radius: 20px;
+    border: 1px solid var(--tile-edge); background: var(--tile);
+    transition: transform .16s var(--spring), background-color .12s ease, border-color .12s ease;
+  }
+  .srow:active { transform: scale(.97); background-color: rgba(255,255,255,0.08); transition: transform .08s ease-out, background-color .08s ease; }
+  .srow .tile { width: 42px; height: 42px; border-radius: 14px; display: grid; place-items: center; flex: 0 0 auto; }
   .srow .tile svg { width: 22px; height: 22px; }
   .srow .t { font-weight: 600; color: var(--fg); }
   .srow .h { color: var(--fg-3); font-size: 0.85rem; }
-  .srow.saweria { --c: var(--saweria); } .srow.saweria .tile { background: rgba(245,165,36,0.14); color: var(--saweria); } .srow.saweria:hover { border-color: rgba(245,165,36,0.5); }
-  .srow.kofi { --c: var(--kofi); } .srow.kofi .tile { background: rgba(41,171,224,0.14); color: var(--kofi); } .srow.kofi:hover { border-color: rgba(41,171,224,0.5); }
+  .srow.saweria .tile { background: rgba(245,165,36,0.12); color: var(--saweria); } .srow.saweria:hover { border-color: rgba(245,165,36,0.45); }
+  .srow.kofi .tile { background: rgba(41,171,224,0.12); color: var(--kofi); } .srow.kofi:hover { border-color: rgba(41,171,224,0.45); }
 
   /* ---- Footer ---- */
   footer { border-top: 1px solid var(--hairline); margin-top: 24px; padding-block: 34px 48px; }
@@ -149,46 +179,78 @@
   .disclaimer { color: var(--fg-3); font-size: 0.82rem; max-width: 70ch; }
   .disclaimer p { margin: 0 0 8px; }
 
-  /* ---- Download help, install, FAQ and changelog (WayXAuto's sections, in AutoMaxi's look) ---- */
+  /* ---- Download help, install, FAQ and changelog ---- */
   .dl-help { color: var(--fg-3); font-size: 0.9rem; margin: 0; }
-  .dl-help a { color: inherit; text-decoration: underline; }
+  .dl-help a { color: var(--fg-2); text-decoration-color: rgba(255,255,255,0.25); }
   .faq { display: grid; gap: 12px; }
   .faq .step { display: block; }
-  .faq summary { cursor: pointer; list-style: none; display: flex; justify-content: space-between; align-items: center; gap: 12px; }
+  /* The whole question row is the tap target, and lights up while pressed like the app's rows. */
+  .faq summary {
+    cursor: pointer; list-style: none; display: flex; justify-content: space-between; align-items: center; gap: 12px;
+    margin: -20px -22px; padding: 18px 22px; border-radius: 27px; transition: background-color .12s ease;
+  }
+  .faq details[open] summary { margin-bottom: -8px; }
+  .faq summary:active { background-color: rgba(255,255,255,0.05); }
   .faq summary::-webkit-details-marker { display: none; }
-  .faq summary::after { content: "+"; font-family: var(--mono); font-weight: 600; font-size: 1.3rem; color: var(--accent); }
+  .faq summary::after {
+    content: "+"; flex: 0 0 auto; width: 32px; height: 32px; border-radius: 999px; display: grid; place-items: center;
+    background: var(--tile); border: 1px solid var(--tile-edge); color: var(--fg-2); font: 500 1.2rem/1 var(--font);
+    transition: transform .16s var(--spring), background-color .12s ease;
+  }
+  .faq summary:active::after { transform: scale(.9); background-color: rgba(255,255,255,0.12); transition: transform .08s ease-out; }
   .faq details[open] summary::after { content: "\2212"; }
   .faq summary h3 { margin: 2px 0; }
-  .faq h3 { font-family: var(--body); font-weight: 600; font-size: 1.02rem; margin: 0 0 3px; }
+  .faq h3 { font-weight: 600; font-size: 1.02rem; margin: 0 0 3px; }
   .faq p, .faq ol, .faq ul { color: var(--fg-2); font-size: 0.93rem; margin: 10px 0 0; }
   .faq ol, .faq ul { padding-left: 1.2em; }
   .faq li { margin: 4px 0; }
+  .faq li::marker { color: var(--fg-3); }
   .faq b { color: var(--fg); font-weight: 600; }
-  .faq a { color: var(--accent); }
-  .faq .when { color: var(--fg-3); font-weight: 400; font-size: 0.82rem; margin-left: 8px; font-family: var(--mono); }
-  .faq .tag { display: inline-block; margin-left: 8px; padding: 2px 9px; border-radius: 999px; background: var(--accent); color: var(--on-accent); font-size: 0.72rem; font-weight: 700; vertical-align: 2px; }
+  .faq .when { color: var(--fg-3); font-weight: 500; font-size: 0.82rem; margin-left: 10px; font-variant-numeric: tabular-nums; }
+  /* "Latest": the app's status chip, with a green dot. */
+  .faq .tag {
+    display: inline-flex; align-items: center; gap: 6px; margin-left: 10px; padding: 2px 10px 2px 8px; border-radius: 999px;
+    background: rgba(255,255,255,0.05); border: 1px solid var(--glass-edge); color: var(--fg); font-size: 0.72rem; font-weight: 600; vertical-align: 2px; line-height: 1.5;
+  }
+  .faq .tag::before { content: ""; width: 6px; height: 6px; border-radius: 50%; background: var(--live); }
   .keys { display: grid; grid-template-columns: repeat(2, 1fr); gap: 10px; margin-top: 12px; }
   @media (max-width: 560px) { .keys { grid-template-columns: 1fr; } }
-  .key { display: flex; align-items: center; gap: 12px; padding: 10px 12px; border-radius: 12px; background: rgba(255,255,255,0.03); border: 1px solid var(--glass-stroke); }
-  .key kbd { min-width: 48px; padding: 4px 8px; border-radius: 999px; border: 1px solid var(--glass-stroke); font: 600 0.85rem var(--mono); color: var(--accent); text-align: center; }
+  .key { display: flex; align-items: center; gap: 12px; padding: 10px 12px; border-radius: 16px; background: var(--tile); border: 1px solid var(--tile-edge); }
+  /* The app's keycap: glass with a slightly heavier bottom edge. */
+  .key kbd {
+    min-width: 48px; padding: 4px 8px 6px; border-radius: 8px; text-align: center;
+    background: linear-gradient(180deg, rgba(255,255,255,0.13), rgba(255,255,255,0.08)); box-shadow: inset 0 -2px 0 rgba(255,255,255,0.17);
+    font: 600 0.85rem var(--font); color: var(--fg);
+  }
   .key span { color: var(--fg-2); font-size: 0.9rem; }
 
   /* ---- Language: both texts are in the page; the inactive one is hidden ---- */
   html[data-lang="en"] [lang="id"], html[data-lang="id"] [lang="en"] { display: none !important; }
+  /* The app's EN | ID switch: a recessed round track with a raised glass thumb. */
   .lang {
     position: fixed; z-index: 10;
     top: max(12px, env(safe-area-inset-top, 0px)); right: max(12px, env(safe-area-inset-right, 0px));
     display: flex; padding: 3px; border-radius: 999px;
-    background: rgba(8,13,21,0.82); border: 1px solid var(--glass-stroke);
+    background: rgba(10,11,13,0.72); border: 1px solid var(--glass-edge);
     -webkit-backdrop-filter: blur(16px); backdrop-filter: blur(16px);
   }
   .lang button {
-    width: 42px; height: 32px; border: 0; border-radius: 999px; background: transparent; cursor: pointer;
-    font: 700 0.82rem var(--body); color: var(--fg-2);
+    width: 44px; height: 32px; border: 0; border-radius: 999px; background: transparent; cursor: pointer;
+    font: 600 0.8rem var(--font); color: var(--fg-2);
+    transition: transform .16s var(--spring), background-color .12s ease, color .12s ease;
   }
-  html[data-lang="en"] .lang [data-set="en"], html[data-lang="id"] .lang [data-set="id"] { background: var(--accent); color: var(--on-accent); }
+  .lang button:active { transform: scale(.94); background-color: rgba(255,255,255,0.08); transition: transform .08s ease-out; }
+  html[data-lang="en"] .lang [data-set="en"], html[data-lang="id"] .lang [data-set="id"] {
+    color: var(--fg); box-shadow: inset 0 0 0 1px rgba(255,255,255,0.15);
+    background:
+      linear-gradient(90deg, transparent, var(--glass-rim), transparent) 12px 0 / calc(100% - 24px) 1px no-repeat,
+      linear-gradient(180deg, var(--thumb-top), var(--thumb-bottom));
+  }
 
-  @media (prefers-reduced-motion: reduce) { * { transition: none !important; } }
+  @media (prefers-reduced-motion: reduce) {
+    * { transition: none !important; }
+    .btn:active, .srow:active, .lang button:active, .faq summary:active::after { transform: none !important; }
+  }
 </style>
 </head>
 <body>
@@ -498,6 +560,8 @@
     var counterEl = document.getElementById("counter");
     var verEl = document.getElementById("ver");
     var total = null;
+    // Lets :active (the press feedback) fire on iOS Safari.
+    document.addEventListener("touchstart", function () {}, { passive: true });
     // Fallback that always works even if the API call fails or JS is slow.
     btn.href = RELEASES_PAGE;
 
